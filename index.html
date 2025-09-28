@@ -1,0 +1,88 @@
+<!doctype html>
+input,textarea,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:4px}
+button{padding:10px 16px;border:none;border-radius:6px;background:#2b6cb0;color:white;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>Book Appointment — Dr. Sharma</h2>
+<form id="appointmentForm">
+<label>Name</label>
+<input id="name" required />
+
+
+<label>Email</label>
+<input id="email" type="email" required />
+
+
+<label>Phone</label>
+<input id="phone" required />
+
+
+<label>Preferred Date</label>
+<input id="date" type="date" required />
+
+
+<label>Preferred Time</label>
+<input id="time" type="time" required />
+
+
+<label>Message / Symptoms</label>
+<textarea id="message" rows="3"></textarea>
+
+
+<button type="submit">Book Appointment</button>
+</form>
+<p id="status" style="margin-top:10px;color:green"></p>
+</div>
+
+
+<!-- Firebase (compat) libraries (simple for demo) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+<script>
+// --- REPLACE this config with your Firebase Web app config ---
+const firebaseConfig = {
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_PROJECT.firebaseapp.com",
+projectId: "YOUR_PROJECT_ID",
+// ... rest of config
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+
+const form = document.getElementById('appointmentForm');
+const status = document.getElementById('status');
+
+
+form.addEventListener('submit', async (e)=>{
+e.preventDefault();
+status.textContent = '';
+const data = {
+name: document.getElementById('name').value.trim(),
+email: document.getElementById('email').value.trim(),
+phone: document.getElementById('phone').value.trim(),
+date: document.getElementById('date').value,
+time: document.getElementById('time').value,
+message: document.getElementById('message').value.trim(),
+createdAt: firebase.firestore.FieldValue.serverTimestamp()
+};
+
+
+try{
+await db.collection('appointments').add(data);
+status.style.color = 'green';
+status.textContent = 'Appointment request sent! We will contact you soon.';
+form.reset();
+}catch(err){
+status.style.color = 'red';
+status.textContent = 'Error: ' + err.message;
+}
+});
+</script>
+</body>
+</html>
