@@ -1,34 +1,50 @@
-<!doctype html>
-input,textarea,select{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:4px}
-button{padding:10px 16px;border:none;border-radius:6px;background:#2b6cb0;color:white;cursor:pointer}
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Appointment Booking</title>
 </head>
 <body>
-<div class="card">
-<h2>Book Appointment — Dr. Sharma</h2>
-<form id="appointmentForm">
-<label>Name</label>
-<input id="name" required />
+  <h2>Book an Appointment</h2>
+  <form id="appointmentForm">
+    <input type="text" id="name" placeholder="Your Name" required><br><br>
+    <input type="email" id="email" placeholder="Your Email" required><br><br>
+    <input type="date" id="date" required><br><br>
+    <button type="submit">Book Appointment</button>
+  </form>
 
+  <p id="status"></p>
 
-<label>Email</label>
-<input id="email" type="email" required />
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    const form = document.getElementById("appointmentForm");
+    const status = document.getElementById("status");
 
-<label>Phone</label>
-<input id="phone" required />
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const date = document.getElementById("date").value;
 
-
-<label>Preferred Date</label>
-<input id="date" type="date" required />
-
-
-<label>Preferred Time</label>
-<input id="time" type="time" required />
-
-
-<label>Message / Symptoms</label>
-<textarea id="message" rows="3"></textarea>
+      try {
+        await addDoc(collection(db, "appointments"), {
+          name,
+          email,
+          date,
+          createdAt: new Date()
+        });
+        status.innerText = "Appointment booked successfully!";
+        form.reset();
+      } catch (error) {
+        status.innerText = "Error: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
+textarea>
 
 
 <button type="submit">Book Appointment</button>
