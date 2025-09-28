@@ -1,34 +1,41 @@
-<!doctype html>
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Appointments</title>
+</head>
+<body>
+  <h2>All Appointments</h2>
+  <table border="1" id="appointmentsTable">
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Date</th>
+    </tr>
+  </table>
 
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const loginForm = document.getElementById('loginForm');
-const panel = document.getElementById('panel');
-const authArea = document.getElementById('authArea');
-const appointmentsBody = document.getElementById('appointmentsBody');
+    const table = document.getElementById("appointmentsTable");
 
+    async function loadAppointments() {
+      const querySnapshot = await getDocs(collection(db, "appointments"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const row = table.insertRow();
+        row.insertCell(0).innerText = data.name;
+        row.insertCell(1).innerText = data.email;
+        row.insertCell(2).innerText = data.date;
+      });
+    }
 
-loginForm.addEventListener('submit', (e)=>{
-e.preventDefault();
-const email = document.getElementById('adminEmail').value.trim();
-const pass = document.getElementById('adminPassword').value;
-auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
-});
+    loadAppointments();
+  </script>
+</body>
+</html>
 
-
-document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut());
-
-
-auth.onAuthStateChanged(async (user)=>{
-if(user){
-// check admin presence
-const adminDoc = await db.collection('admins').doc(user.uid).get();
-if(!adminDoc.exists){
-alert('This account is not an admin. Contact project owner.');
-auth.signOut();
-return;
 }
 authArea.style.display = 'none';
 panel.style.display = 'block';
