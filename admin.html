@@ -1,0 +1,78 @@
+<!doctype html>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+
+const loginForm = document.getElementById('loginForm');
+const panel = document.getElementById('panel');
+const authArea = document.getElementById('authArea');
+const appointmentsBody = document.getElementById('appointmentsBody');
+
+
+loginForm.addEventListener('submit', (e)=>{
+e.preventDefault();
+const email = document.getElementById('adminEmail').value.trim();
+const pass = document.getElementById('adminPassword').value;
+auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+});
+
+
+document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut());
+
+
+auth.onAuthStateChanged(async (user)=>{
+if(user){
+// check admin presence
+const adminDoc = await db.collection('admins').doc(user.uid).get();
+if(!adminDoc.exists){
+alert('This account is not an admin. Contact project owner.');
+auth.signOut();
+return;
+}
+authArea.style.display = 'none';
+panel.style.display = 'block';
+loadAppointments();
+}else{
+authArea.style.display = 'block';
+panel.style.display = 'none';
+}
+});
+
+
+async function loadAppointments(){
+appointmentsBody.innerHTML = '';
+const snapshot = await db.collection('appointments').orderBy('createdAt','desc').get();
+snapshot.forEach(doc=>{
+const d = doc.data();
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${escapeHtml(d.name || '')}<div class="small">${d.email || ''}</div></td>
+<td>${d.phone || ''}</td>
+<td>${d.date || ''} ${d.time || ''}</td>
+<td>${escapeHtml(d.message || '')}</td>
+<td><button data-id="${doc.id}" class="delBtn">Delete</button></td>
+`;
+appointmentsBody.appendChild(tr);
+});
+// attach delete handlers
+document.querySelectorAll('.delBtn').forEach(btn=>{
+btn.addEventListener('click', async ()=>{
+const id = btn.getAttribute('data-id');
+if(confirm('Delete this appointment?')){
+await db.collection('appointments').doc(id).delete();
+loadAppointments();
+}
+});
+});
+}
+
+
+function escapeHtml(text){
+return text.replace(/[&<>\"]/g, function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+});
+}
+</script>
+</body>
+</html>
